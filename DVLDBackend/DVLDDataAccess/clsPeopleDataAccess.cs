@@ -13,12 +13,12 @@ namespace DVLDDataAccess
 {      
     
     //SqlDataReader reader = command.ExecuteReader();
-       //object result = sqlCommand.ExecuteScalar();
-       //effect = sqlCommand.ExecuteNonQuery();
+    //object result = sqlCommand.ExecuteScalar();
+    //effect = sqlCommand.ExecuteNonQuery();
 
 
 
-    //1
+    ///1
 
 
     public sealed class clsPeopleDataAccess
