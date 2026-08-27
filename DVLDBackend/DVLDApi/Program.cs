@@ -1,11 +1,35 @@
+using Microsoft.EntityFrameworkCore;
+using DVLDDataAccess.Entities;
+using DVLDDataAccess;
+using DVLDBusiness;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Register DVLDContext
+builder.Services.AddDbContext<DVLDContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register Data Access
+builder.Services.AddScoped<clsPeopleDataAccess>();
+
+// Register Business
+builder.Services.AddScoped<clsPeopleBusiness>();
+
+builder.Services.AddScoped<clsApplicationsTypeDataAccess>();
+builder.Services.AddScoped<clsApplicationsTypeBusiness>();
+
+builder.Services.AddScoped<clsUsersDataAccess>();
+builder.Services.AddScoped<clsUsersBusiness>();
+
+builder.Services.AddScoped<clsTestTypeDataAccess>();
+builder.Services.AddScoped<clsTestTypeBusiness>();
 
 var app = builder.Build();
 

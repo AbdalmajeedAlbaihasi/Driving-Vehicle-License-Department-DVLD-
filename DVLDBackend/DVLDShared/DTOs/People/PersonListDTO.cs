@@ -1,24 +1,55 @@
-﻿namespace DVLDShared.DTOs.People;
+﻿using System;
 
-    public sealed class PersonListDto
+namespace DVLDShared.DTOs.People
+{
+    public class PersonListDTO
     {
-        public int PersonId { get; set; }
+        public PersonListDTO(
+            int personID,
+            string nationalNo,
+            string firstName,
+            string secondName,
+            string thirdName,
+            string lastName,
+            int gendor,
+            DateTime dateOfBirth,
+            string nationality,
+            string phone,
+            string email)
+        {
+            this.PersonID = personID;
+            this.NationalNo = nationalNo;
+            this.FirstName = firstName;
+            this.SecondName = secondName;
+            this.ThirdName = thirdName;
+            this.LastName = lastName;
+            this.Gendor = gendor;
+            this.DateOfBirth = dateOfBirth;
+            this.Nationality = nationality;
+            this.Phone = phone;
+            this.Email = email;
+        }
 
-        public string NationalNo { get; set; } = string.Empty;
+        public int PersonID { get; set; }
 
-        public string FullName { get; set; } = string.Empty;
+        public string NationalNo { get; set; }
+
+        public string FirstName { get; set; }
+
+        public string SecondName { get; set; }
+
+        public string ThirdName { get; set; }
+
+        public string LastName { get; set; }
+
+        public int Gendor { get; set; }
 
         public DateTime DateOfBirth { get; set; }
 
-        public string Gender { get; set; } = string.Empty;
+        public string Nationality { get; set; }
 
-        public string Address { get; set; } = string.Empty;
+        public string Phone { get; set; }
 
-        public string Phone { get; set; } = string.Empty;
-
-        public string? Email { get; set; }
-
-        public string CountryName { get; set; } = string.Empty;
-
-        public string? ImagePath { get; set; }
+        public string Email { get; set; }
     }
+}

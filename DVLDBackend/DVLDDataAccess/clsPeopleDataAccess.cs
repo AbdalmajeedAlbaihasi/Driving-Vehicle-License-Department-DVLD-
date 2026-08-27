@@ -1,486 +1,327 @@
-﻿using DVLDShared.DTOs.People;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using DVLDDataAccess.Entities;
+using DVLDShared.DTOs.People;
+using Microsoft.EntityFrameworkCore;
 
 namespace DVLDDataAccess
-{      
-    
-    //SqlDataReader reader = command.ExecuteReader();
-    //object result = sqlCommand.ExecuteScalar();
-    //effect = sqlCommand.ExecuteNonQuery();
-
-
-
-    ///1
-
-
-    public sealed class clsPeopleDataAccess
+{
+    public class clsPeopleDataAccess
     {
+        private readonly DVLDContext _context;
 
-        public async Task<List<PersonListDto>> GetAllAsync()
+        public clsPeopleDataAccess(DVLDContext context)
         {
-            List<PersonListDto> people = new List<PersonListDto>();
+            _context = context;
+        }
 
-            using SqlConnection connection =
-                new SqlConnection(clsServer_connection.Server);
-
-            using SqlCommand command =
-                new SqlCommand("SP_GetAllPeople", connection);
-
-            command.CommandType = CommandType.StoredProcedure;
-
-            await connection.OpenAsync();
-
-            using SqlDataReader reader =
-                await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
+        public async Task<List<PersonListDTO>> GetAllPersonAsync()
+        {
+            try
             {
-                PersonListDto person = new PersonListDto
+                return await _context.People
+                    .AsNoTracking()
+                    .Select(p => new PersonListDTO(
+                        p.PersonId,
+                        p.NationalNo,
+                        p.FirstName,
+                        p.SecondName,
+                        p.ThirdName ?? "",
+                        p.LastName,
+                        p.Gendor,
+                        p.DateOfBirth,
+                        p.NationalityCountry.CountryName,
+                        p.Phone,
+                        p.Email ?? ""
+                    ))
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"Error in GetAllPersonAsync: {ex.Message}");
+
+                return new List<PersonListDTO>();
+            }
+        }
+
+        public async Task<int> AddNewPersonAsync(AddNewPeopleDTO addNewPeopleDTO)
+        {
+            if (addNewPeopleDTO == null)
+                return -1;
+
+            if (string.IsNullOrWhiteSpace(addNewPeopleDTO.NationalNo))
+                return -1;
+
+            if (string.IsNullOrWhiteSpace(addNewPeopleDTO.FirstName))
+                return -1;
+
+            if (string.IsNullOrWhiteSpace(addNewPeopleDTO.LastName))
+                return -1;
+
+            if (addNewPeopleDTO.NationalityCountryID <= 0)
+                return -1;
+
+            try
+            {
+                bool nationalNoExists =
+                    await _context.People.AnyAsync(
+                        p => p.NationalNo == addNewPeopleDTO.NationalNo);
+
+                if (nationalNoExists)
+                    return -1;
+
+                Person person = new Person
                 {
-                    PersonId = Convert.ToInt32(reader["PersonID"]),
+                    NationalNo = addNewPeopleDTO.NationalNo,
+                    FirstName = addNewPeopleDTO.FirstName,
+                    SecondName = addNewPeopleDTO.SecondName,
 
-                    NationalNo =
-                        Convert.ToString(reader["NationalNo"])
-                        ?? string.Empty,
+                    ThirdName =
+                        string.IsNullOrWhiteSpace(addNewPeopleDTO.ThirdName)
+                            ? null
+                            : addNewPeopleDTO.ThirdName,
 
-                    FullName =
-                        Convert.ToString(reader["FullName"])
-                        ?? string.Empty,
+                    LastName = addNewPeopleDTO.LastName,
+                    DateOfBirth = addNewPeopleDTO.DateOfBirth,
+                    Gendor = addNewPeopleDTO.Gendor,
+                    Address = addNewPeopleDTO.Address,
+                    Phone = addNewPeopleDTO.Phone,
 
-                    DateOfBirth =
-                        Convert.ToDateTime(reader["DateOfBirth"]),
+                    Email =
+                        string.IsNullOrWhiteSpace(addNewPeopleDTO.Email)
+                            ? null
+                            : addNewPeopleDTO.Email,
 
-                    Gender =
-                        Convert.ToString(reader["Gender"])
-                        ?? string.Empty,
+                    NationalityCountryId =
+                        addNewPeopleDTO.NationalityCountryID,
 
-                    Address =
-                        Convert.ToString(reader["Address"])
-                        ?? string.Empty,
-
-                    Phone =
-                        Convert.ToString(reader["Phone"])
-                        ?? string.Empty,
-
-                    Email = reader["Email"] == DBNull.Value
-                        ? null
-                        : Convert.ToString(reader["Email"]),
-
-                    CountryName =
-                        Convert.ToString(reader["CountryName"])
-                        ?? string.Empty,
-
-                    ImagePath = reader["ImagePath"] == DBNull.Value
-                        ? null
-                        : Convert.ToString(reader["ImagePath"])
+                    ImagePath =
+                        string.IsNullOrWhiteSpace(addNewPeopleDTO.ImagePath)
+                            ? null
+                            : addNewPeopleDTO.ImagePath
                 };
 
-                people.Add(person);
-            }
+                await _context.People.AddAsync(person);
 
-            return people;
-        }
+                int affectedRows =
+                    await _context.SaveChangesAsync();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public static bool GetPeopleByID(int PersonID, ref string nationalNo, ref string firstName, ref string secondName,
-                                     ref string thirdName, ref string lastName, ref DateTime dateOfBirth, ref byte Gendor,
-                                     ref string Phone, ref int NationalityCountryID, ref string Email, ref string Address, ref string ImagePath)
-        {
-            bool isFound = false;
-            SqlConnection connection = new SqlConnection(clsServer_connection.Server);
-            string query = "SELECT * FROM People WHERE PersonID = @PersonID;";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@PersonID", PersonID);
-
-            try
-            {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-
-                if (reader.Read())
-                {
-                    isFound = true;
-                    nationalNo = reader["NationalNo"].ToString();
-                    firstName = reader["FirstName"].ToString();
-                    secondName = reader["SecondName"].ToString();
-                    thirdName = reader["ThirdName"] == DBNull.Value ? "" : reader["ThirdName"].ToString();
-                    lastName = reader["LastName"].ToString();
-                    Email = reader["Email"] == DBNull.Value ? "" : reader["Email"].ToString();
-                    ImagePath = reader["ImagePath"] == DBNull.Value ? "" : reader["ImagePath"].ToString();
-                    Address = reader["Address"].ToString();
-                    dateOfBirth = (DateTime)reader["DateOfBirth"];
-                    Gendor = (byte)reader["Gendor"];
-                    Phone = reader["Phone"].ToString();
-                    NationalityCountryID = Convert.ToInt16(reader["NationalityCountryID"]);
-
-                    reader.Close();
-                }
-                else
-                {
-                    isFound = false;
-                }
-
-                reader.Close();
+                return affectedRows > 0
+                    ? person.PersonId
+                    : -1;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                isFound = false;
-            }
-            finally
-            {
-                connection.Close();
-            }
+                Console.WriteLine(
+                    $"Error in AddNewPersonAsync: {ex.Message}");
 
-            return isFound;
+                return -1;
+            }
         }
 
-
-
-        //2
-        public static bool GetPeopleByNationalNo(string nationalNo, ref int PersonID, ref string firstName, ref string secondName,
-                                     ref string thirdName, ref string lastName, ref DateTime dateOfBirth, ref int Gendor,
-                                     ref string Phone, ref int NationalityCountryID, ref string Email, ref string Address, ref string ImagePath)
+        public async Task<OnePeopleDTO?> GetPersonByIDAsync(int personID)
         {
-            bool isFound = false;
-            SqlConnection connection = new SqlConnection(clsServer_connection.Server);
-            string query = "SELECT * FROM People WHERE nationalNo = @nationalNo;";
-            SqlCommand command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@nationalNo", nationalNo);
+            if (personID <= 0)
+                return null;
 
             try
             {
-                connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
-
-                if (reader.Read())
-                {
-                    isFound = true;
-                    PersonID = (int)reader["PersonID"];
-                    firstName = reader["FirstName"].ToString();
-                    secondName = reader["SecondName"].ToString();
-                    thirdName = reader["ThirdName"] == DBNull.Value ? "" : reader["ThirdName"].ToString();
-                    lastName = reader["LastName"].ToString();
-                    Email = reader["Email"] != DBNull.Value ? "" : reader["Email"].ToString();
-                    ImagePath = reader["ImagePath"] != DBNull.Value ? "" : reader["ImagePath"].ToString();
-                    Address = reader["Address"].ToString();
-                    dateOfBirth = (DateTime)reader["DateOfBirth"];
-                    Gendor = (byte)reader["Gendor"];
-                    Phone = reader["Phone"].ToString();
-                    NationalityCountryID = Convert.ToInt16(reader["NationalityCountryID"]);
-
-                    reader.Close();
-                }
-                else
-                {
-                    isFound = false;
-                }
-
-                reader.Close();
+                return await _context.People
+                    .AsNoTracking()
+                    .Where(p => p.PersonId == personID)
+                    .Select(p => new OnePeopleDTO(
+                        p.PersonId,
+                        p.NationalNo,
+                        p.FirstName,
+                        p.SecondName,
+                        p.ThirdName ?? "",
+                        p.LastName,
+                        p.DateOfBirth,
+                        p.Gendor,
+                        p.Address,
+                        p.Phone,
+                        p.Email ?? "",
+                        p.NationalityCountryId,
+                        p.NationalityCountry.CountryName,
+                        p.ImagePath ?? ""
+                    ))
+                    .FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                isFound = false;
-            }
-            finally
-            {
-                connection.Close();
-            }
+                Console.WriteLine(
+                    $"Error in GetPersonByIDAsync: {ex.Message}");
 
-            return isFound;
+                return null;
+            }
         }
 
-
-
-
-        //3
-        public static int AddPeople(string NationalNo, string FirstName, string SecondName, string ThirdName
-            , string LastName, DateTime DateOfBirth, int Gendor, string Address, string Phone, string Email,
-            int NationalityCountryID, string ImagePath)
-
+        public async Task<OnePeopleDTO?> GetPersonByNationalNoAsync(string nationalNo)
         {
-            int PeopleID = -1;
-            SqlConnection sqlConnection = new SqlConnection(clsServer_connection.Server);
-            string query = @"INSERT INTO [dbo].[People]
-           ([NationalNo]
-           ,[FirstName]
-           ,[SecondName]
-           ,[ThirdName]
-           ,[LastName]
-           ,[DateOfBirth]
-           ,[Gendor]
-           ,[Address]
-           ,[Phone]
-           ,[Email]
-           ,[NationalityCountryID]
-           ,[ImagePath])
-     VALUES
-           (@NationalNo 
-           ,@FirstName  
-           ,@SecondName 
-           ,@ThirdName  
-           ,@LastName   
-           ,@DateOfBirth
-           ,@Gendor 
-           ,@Address    
-           ,@Phone     
-           ,@Email      
-           ,@NationalityCountryID 
-           ,@ImagePath)
-
-            select SCOPE_IDENTITY();";
-
-            SqlCommand sqlCommand = new SqlCommand(query, sqlConnection);
-            sqlCommand.Parameters.AddWithValue("@NationalNo", NationalNo);
-            sqlCommand.Parameters.AddWithValue("@FirstName", FirstName);
-            sqlCommand.Parameters.AddWithValue("@SecondName", SecondName);
-            if (ThirdName != null && ThirdName != "")
-            {
-                sqlCommand.Parameters.AddWithValue("@ThirdName", ThirdName);
-            }
-            else
-            {
-                sqlCommand.Parameters.AddWithValue("@ThirdName", System.DBNull.Value);
-            }
-            sqlCommand.Parameters.AddWithValue("@LastName", LastName);
-            sqlCommand.Parameters.AddWithValue("@DateOfBirth", DateOfBirth);
-            sqlCommand.Parameters.AddWithValue("@Gendor", Gendor);
-            sqlCommand.Parameters.AddWithValue("@Address", Address);
-            sqlCommand.Parameters.AddWithValue("@Phone", Phone);
-            if (Email != "" && Email != null)
-            {
-                sqlCommand.Parameters.AddWithValue("@Email", Email);
-            }
-            else
-            {
-                sqlCommand.Parameters.AddWithValue("@Email", System.DBNull.Value);
-            }
-            sqlCommand.Parameters.AddWithValue("@NationalityCountryID", NationalityCountryID);
-            if (ImagePath != "" && ImagePath != null)
-            {
-                sqlCommand.Parameters.AddWithValue("@ImagePath", ImagePath);
-            }
-            else
-            {
-                sqlCommand.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);
-            }
-            try
-            {
-                sqlConnection.Open();
-                object result = sqlCommand.ExecuteScalar();
-                if (result != null && int.TryParse(result.ToString(), out int ID))
-                {
-                    PeopleID = ID;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                sqlConnection.Close();
-            }
-            return PeopleID;
-        }
-
-
-
-
-        //4
-        public static bool UpdatePeople(int PersonID, string NationalNo, string FirstName, string SecondName, string ThirdName
-            , string LastName, DateTime DateOfBirth, int Gendor, string Address, string Phone, string Email,
-            int NationalityCountryID, string ImagePath)
-        {
-            int effect = 0;
-            SqlConnection sqlConnection = new SqlConnection(clsServer_connection.Server);
-            string query = @"UPDATE [dbo].[People]
-                           SET
-                               [NationalNo] = @NationalNo
-                              ,[FirstName] = @FirstName
-                              ,[SecondName] = @SecondName
-                              ,[ThirdName] = @ThirdName
-                              ,[LastName]  = @LastName
-                              ,[DateOfBirth] =@DateOfBirth  
-                              ,[Gendor] = @Gendor  
-                              ,[Address] = @Address   
-                              ,[Phone] = @Phone   
-                              ,[Email] = @Email 
-                              ,[NationalityCountryID] = @NationalityCountryID 
-                              ,[ImagePath] = @ImagePath
-                           WHERE PersonID = @PersonID; ";
-            SqlCommand sqlCommand = new SqlCommand(query, sqlConnection);
-            sqlCommand.Parameters.AddWithValue("@PersonID", PersonID);
-            sqlCommand.Parameters.AddWithValue("@NationalNo", NationalNo);
-            sqlCommand.Parameters.AddWithValue("@FirstName", FirstName);
-            sqlCommand.Parameters.AddWithValue("@SecondName", SecondName);
-            if (ThirdName != "" && ThirdName != null)
-            {
-                sqlCommand.Parameters.AddWithValue("@ThirdName", ThirdName);
-            }
-            else
-            {
-                sqlCommand.Parameters.AddWithValue("@ThirdName", System.DBNull.Value);
-            }
-            sqlCommand.Parameters.AddWithValue("@LastName", LastName);
-            sqlCommand.Parameters.AddWithValue("@DateOfBirth", DateOfBirth);
-            sqlCommand.Parameters.AddWithValue("@Gendor", Gendor);
-            sqlCommand.Parameters.AddWithValue("@Address", Address);
-            sqlCommand.Parameters.AddWithValue("@Phone", Phone);
-            if (Email != "" && Email != null)
-            {
-                sqlCommand.Parameters.AddWithValue("@Email", Email);
-            }
-            else
-            {
-                sqlCommand.Parameters.AddWithValue("@Email", System.DBNull.Value);
-            }
-            sqlCommand.Parameters.AddWithValue("@NationalityCountryID", NationalityCountryID);
-            if (ImagePath != "" && ImagePath != null)
-            {
-                sqlCommand.Parameters.AddWithValue("@ImagePath", ImagePath);
-            }
-            else
-            {
-                sqlCommand.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);
-            }
+            if (string.IsNullOrWhiteSpace(nationalNo))
+                return null;
 
             try
             {
-                sqlConnection.Open();
-                effect = sqlCommand.ExecuteNonQuery();
+                return await _context.People
+                    .AsNoTracking()
+                    .Where(p => p.NationalNo == nationalNo)
+                    .Select(p => new OnePeopleDTO(
+                        p.PersonId,
+                        p.NationalNo,
+                        p.FirstName,
+                        p.SecondName,
+                        p.ThirdName ?? "",
+                        p.LastName,
+                        p.DateOfBirth,
+                        p.Gendor,
+                        p.Address,
+                        p.Phone,
+                        p.Email ?? "",
+                        p.NationalityCountryId,
+                        p.NationalityCountry.CountryName,
+                        p.ImagePath ?? ""
+                    ))
+                    .FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
-            }
-            finally { sqlConnection.Close(); }
+                Console.WriteLine(
+                    $"Error in GetPersonByNationalNoAsync: {ex.Message}");
 
-            return (effect > 0);
+                return null;
+            }
         }
 
-
-
-        //5
-        
-
-
-
-        //6
-        public static bool DeletePeople(int PersonID)
+        public async Task<bool> UpdatePersonAsync(UpdatePeopleDTO updatePeopleDTO)
         {
-            int effect = 0;
-            SqlConnection sqlConnection = new SqlConnection(clsServer_connection.Server);
-            string query = "delete from people where PersonID = @PersonID;";
-            SqlCommand sqlCommand = new SqlCommand(query, sqlConnection);
-            sqlCommand.Parameters.AddWithValue("@PersonID", PersonID);
+            if (updatePeopleDTO == null)
+                return false;
+
+            if (updatePeopleDTO.PersonID <= 0)
+                return false;
+
+            if (string.IsNullOrWhiteSpace(updatePeopleDTO.NationalNo))
+                return false;
 
             try
             {
-                sqlConnection.Open();
-                effect = sqlCommand.ExecuteNonQuery();
+                Person? person =
+                    await _context.People.FindAsync(
+                        updatePeopleDTO.PersonID);
+
+                if (person == null)
+                    return false;
+
+                bool nationalNoExists =
+                    await _context.People.AnyAsync(p =>
+                        p.NationalNo == updatePeopleDTO.NationalNo &&
+                        p.PersonId != updatePeopleDTO.PersonID);
+
+                if (nationalNoExists)
+                    return false;
+
+                person.NationalNo =
+                    updatePeopleDTO.NationalNo;
+
+                person.FirstName =
+                    updatePeopleDTO.FirstName;
+
+                person.SecondName =
+                    updatePeopleDTO.SecondName;
+
+                person.ThirdName =
+                    string.IsNullOrWhiteSpace(updatePeopleDTO.ThirdName)
+                        ? null
+                        : updatePeopleDTO.ThirdName;
+
+                person.LastName =
+                    updatePeopleDTO.LastName;
+
+                person.DateOfBirth =
+                    updatePeopleDTO.DateOfBirth;
+
+                person.Gendor =
+                    updatePeopleDTO.Gendor;
+
+                person.Address =
+                    updatePeopleDTO.Address;
+
+                person.Phone =
+                    updatePeopleDTO.Phone;
+
+                person.Email =
+                    string.IsNullOrWhiteSpace(updatePeopleDTO.Email)
+                        ? null
+                        : updatePeopleDTO.Email;
+
+                person.NationalityCountryId =
+                    updatePeopleDTO.NationalityCountryID;
+
+                person.ImagePath =
+                    string.IsNullOrWhiteSpace(updatePeopleDTO.ImagePath)
+                        ? null
+                        : updatePeopleDTO.ImagePath;
+
+                int affectedRows =
+                    await _context.SaveChangesAsync();
+
+                return affectedRows > 0;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine(
+                    $"Error in UpdatePersonAsync: {ex.Message}");
+
+                return false;
             }
-            finally { sqlConnection.Close(); }
-            return (effect > 0);
         }
 
-
-
-        public DataTable FiendByIdPeople(int PersonID)
+        public async Task<bool> DeletePersonAsync(int personID)
         {
-            DataTable dt = new DataTable();
-            SqlConnection sqlConnection = new SqlConnection(clsServer_connection.Server);
-            string query = "select * from people where PersonID = @PersonID;";
-            SqlCommand sqlCommand = new SqlCommand(query, sqlConnection);
-            sqlCommand.Parameters.AddWithValue("@PersonID", PersonID);
+            if (personID <= 0)
+                return false;
 
             try
             {
-                sqlConnection.Open();
-                SqlDataReader reader = sqlCommand.ExecuteReader();
-                if (reader.HasRows)
-                {
-                    dt.Load(reader);
-                }
+                Person? person =
+                    await _context.People.FindAsync(personID);
+
+                if (person == null)
+                    return false;
+
+                _context.People.Remove(person);
+
+                int affectedRows =
+                    await _context.SaveChangesAsync();
+
+                return affectedRows > 0;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine(
+                    $"Error in DeletePersonAsync: {ex.Message}");
+
+                return false;
             }
-            finally { sqlConnection.Close(); }
-            return dt;
         }
 
-
-
-        public static DataTable GetAllCountries()
+        public async Task<bool> IsNationalNoExistsAsync(string nationalNo)
         {
-            DataTable dt = new DataTable();
-            SqlConnection sqlConnection = new SqlConnection(clsServer_connection.Server);
-            string query = "select * from Countries ";
-            SqlCommand sqlCommand = new SqlCommand(query, sqlConnection);
+            if (string.IsNullOrWhiteSpace(nationalNo))
+                return false;
 
             try
             {
-                sqlConnection.Open();
-                SqlDataReader reader = sqlCommand.ExecuteReader();
-                if (reader.HasRows)
-                {
-                    dt.Load(reader);
-                }
+                return await _context.People
+                    .AnyAsync(p => p.NationalNo == nationalNo);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.WriteLine(
+                    $"Error in IsNationalNoExistsAsync: {ex.Message}");
+
+                return false;
             }
-            finally { sqlConnection.Close(); }
-            return dt;
         }
     }
-    //11
-    //22
-
-
 }
