@@ -15,40 +15,54 @@ namespace DVLDBusiness
         {
             _dataAccess = dataAccess;
         }
-        public async Task<(bool Success, string Message)> AddNewApplication(AddNewApplicationDTO applicationDTO)
+        public async Task<(bool Success, string Message, int newLocalDrivingLicenseApplicationID)> AddNewApplicationAsync(AddNewApplicationDTO applicationDTO)
         {
             if (applicationDTO == null)
             {
-                return (false, "Application data is null.");
+                return (false, "Application data is null.", -1);
             }
 
-            if(applicationDTO.ApplicationTypeId <= 0)
+            if (applicationDTO.ApplicationTypeID <= 0)
             {
-                return (false, "Invalid Application Type ID.");
+                return (false, "Invalid Application Type ID.", -1);
             }
-            if(applicationDTO.ApplicantPersonID <= 0)
+            if (applicationDTO.ApplicantPersonID <= 0)
             {
-                return (false, "Invalid Applicant Person ID.");
+                return (false, "Invalid Applicant Person ID.", -1);
             }
-            if(applicationDTO.ApplicationDate == default)
+            if (applicationDTO.ApplicationDate == default)
             {
-                return (false, "Invalid Application Date.");
+                return (false, "Invalid Application Date.", -1);
             }
-            if(applicationDTO.ApplicationStatus < 0)
+            if (applicationDTO.ApplicationStatus < 1 || applicationDTO.ApplicationStatus > 3)
             {
-                return (false, "Invalid Application Status.");
+                return (false, "Invalid Application Status.", -1);
             }
-            if(applicationDTO.PaidFees < 0)
+            if (applicationDTO.PaidFees < 0)
             {
-                return (false, "Paid Fees cannot be negative.");
+                return (false, "Paid Fees cannot be negative.", -1);
             }
-            if(applicationDTO.CreatedByUserID <= 0)
+            if (applicationDTO.CreatedByUserID <= 0)
             {
-                return (false, "Invalid Created By User ID.");
+                return (false, "Invalid Created By User ID.", -1);
             }
-            if(applicationDTO.LastStatusDate == default)
+            if (applicationDTO.LastStatusDate == default)
             {
-                return (false, "Invalid Last Status Date.");
+                return (false, "Invalid Last Status Date.", -1);
             }
-            if
+            if (await _dataAccess.HasActiveApplicationWithSameLicenseClassAsync(applicationDTO.ApplicantPersonID, applicationDTO.LicenseClassID))
+            {
+                return (false,"An active application with the same license class already exists.",-1);
+            }
+           
+
+            int newLocalDrivingLicenseApplicationID = await _dataAccess.AddNewApplicationAsync(applicationDTO);
+            if (newLocalDrivingLicenseApplicationID <= 0)
+            {
+                return (false, "Failed to add new application.", -1);
+            }
+
+            return (true, "Application added successfully.", newLocalDrivingLicenseApplicationID);
         }
+     }
+}

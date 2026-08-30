@@ -16,9 +16,15 @@ namespace DVLDBusiness
         }
 
 
-        public async Task<List<PersonListDTO>> GetAllPeopleAsync()
+        public async Task<(bool Success, string Message, List<PersonListDTO> People)> GetAllPeopleAsync()
         {
-            return await _peopleDataAccess.GetAllPersonAsync();
+            var people = await _peopleDataAccess.GetAllPersonAsync();
+
+            if (people.Count == 0)
+            {
+                return (false, "No people found", new List<PersonListDTO>());
+            }
+            return (true, "People retrieved successfully", people);
         }
 
 

@@ -20,13 +20,14 @@ namespace DVLDDataAccess
         //نقدر نضيف طالما انه
         //1-ماعنده طلب من نفس النوع
         //2-اذا كان من نفس النوع لازم يكون الطلب السابق مكتمل او مرفوض او ملغي
-        public async Task<int> AddNewApplication(AddNewApplicationDTO applicationDTO)
+        public async Task<int> AddNewApplicationAsync(
+            AddNewApplicationDTO applicationDTO)
         {
             try
             {
                 var newApplication = new Application
-                {                    
-                    ApplicantPersonId = applicationDTO.ApplicantPersonID ,
+                {
+                    ApplicantPersonId = applicationDTO.ApplicantPersonID,
                     ApplicationDate = applicationDTO.ApplicationDate,
                     ApplicationTypeId = applicationDTO.ApplicationTypeID,
                     ApplicationStatus = applicationDTO.ApplicationStatus,
@@ -34,62 +35,51 @@ namespace DVLDDataAccess
                     PaidFees = applicationDTO.PaidFees,
                     CreatedByUserId = applicationDTO.CreatedByUserID
                 };
-                _context.Applications.Add(newApplication);
-                int newApplicationId = newApplication.ApplicationId;
 
-                var newLocalDrivingLicenseApplication = new LocalDrivingLicenseApplication
-                {
-                    ApplicationId = newApplicationId,
-                    LicenseClassId = applicationDTO.LicenseClassID
-                };
+                var newLocalDrivingLicenseApplication =
+                    new LocalDrivingLicenseApplication
+                    {
+                        LicenseClassId = applicationDTO.LicenseClassID,
 
+                        Application = newApplication
+                    };
 
-                _context.LocalDrivingLicenseApplications.Add(newLocalDrivingLicenseApplication);
+                _context.LocalDrivingLicenseApplications
+                    .Add(newLocalDrivingLicenseApplication);
 
-                int newLocalDrivingLicenseApplicationID = await _context.SaveChangesAsync();
-                return newLocalDrivingLicenseApplicationID;
+                await _context.SaveChangesAsync();
+
+                return newLocalDrivingLicenseApplication
+                    .LocalDrivingLicenseApplicationId;
             }
-
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while adding a new application: {ex.Message}");
+                Console.WriteLine(
+                    $"An error occurred while adding a new application: {ex.Message}");
+
                 return -1;
             }
         }
 
-        public async Task<bool> HasApplicationWithSameTypeAsync(int ApplicantPersonID, int LicenseClassID)
+        public async Task<bool> HasActiveApplicationWithSameLicenseClassAsync(
+            int ApplicantPersonID,
+            int LicenseClassID)
         {
             try
             {
                 return await _context.LocalDrivingLicenseApplications
-                    .AnyAsync(app => app.Application.ApplicantPersonId == ApplicantPersonID &&
-                            app.LicenseClassId == LicenseClassID);
-
-
+                    .AnyAsync(app =>
+                        app.Application.ApplicantPersonId == ApplicantPersonID &&
+                        app.LicenseClassId == LicenseClassID &&
+                        app.Application.ApplicationStatus == 1);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"An error occurred while checking for existing license applications: {ex.Message}");
+                Console.WriteLine(
+                    $"An error occurred while checking for existing license applications: {ex.Message}");
+
                 return false;
             }
         }
-
-
-
-        LocalDrivingLicenseApplication
-        LocalDrivingLicenseApplicationID
-
-        LicenseClass
-        ClassName
-
-        People
-        NationalNo
-        FullName
-
-        Application
-        ApplicationDate
-
-
-
     }
 }

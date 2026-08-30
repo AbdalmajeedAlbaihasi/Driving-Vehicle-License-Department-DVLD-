@@ -24,15 +24,14 @@ namespace DVLDAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<IEnumerable<PersonListDTO>>> GetAllPeople()
         {
-            List<PersonListDTO> peopleList =
-                await _clsPeopleBusiness.GetAllPeopleAsync();
+            var peopleList = await _clsPeopleBusiness.GetAllPeopleAsync();
 
-            if (peopleList == null || peopleList.Count == 0)
+            if (!peopleList.Success)
             {
-                return NotFound("No People Found");
+                return NotFound(peopleList);
             }
 
-            return Ok(peopleList);
+            return Ok(peopleList.People);
         }
 
 

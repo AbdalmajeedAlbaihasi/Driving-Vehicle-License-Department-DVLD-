@@ -18,8 +18,6 @@ builder.Services.AddDbContext<DVLDContext>(options =>
 
 // Register Data Access
 builder.Services.AddScoped<clsPeopleDataAccess>();
-
-// Register Business
 builder.Services.AddScoped<clsPeopleBusiness>();
 
 builder.Services.AddScoped<clsApplicationsTypeDataAccess>();
@@ -30,6 +28,12 @@ builder.Services.AddScoped<clsUsersBusiness>();
 
 builder.Services.AddScoped<clsTestTypeDataAccess>();
 builder.Services.AddScoped<clsTestTypeBusiness>();
+
+builder.Services.AddScoped<clsLocalDrivingLicenseApplicationDataAccess>();
+builder.Services.AddScoped<clsLocalDrivingLicenseApplicationBusiness>();
+
+builder.Services.AddScoped<clsApplicationsDataAccess>();
+builder.Services.AddScoped<clsApplicationsBusiness>();
 
 var app = builder.Build();
 
