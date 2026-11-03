@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.37203.1 d17.14
+VisualStudioVersion = 17.14.37203.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DVLDApi", "DVLDApi\DVLDApi.csproj", "{4CC218A8-66E0-4F80-9451-ADDA8760E376}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DVLDDataAccess", "DVLDDataAccess\DVLDDataAccess.csproj", "{E68D69E1-7EA8-4490-BA24-2C4CCB3782C1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DVLDShared", "DVLDShared\DVLDShared.csproj", "{F8E3377D-9CA3-4CDA-BB3E-57FF66835EA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DVLDBusinessTest", "DVLDBusinessTest\DVLDBusinessTest.csproj", "{680733F7-4308-4398-8EEE-CBBC5FD1528D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{F8E3377D-9CA3-4CDA-BB3E-57FF66835EA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8E3377D-9CA3-4CDA-BB3E-57FF66835EA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8E3377D-9CA3-4CDA-BB3E-57FF66835EA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{680733F7-4308-4398-8EEE-CBBC5FD1528D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{680733F7-4308-4398-8EEE-CBBC5FD1528D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{680733F7-4308-4398-8EEE-CBBC5FD1528D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{680733F7-4308-4398-8EEE-CBBC5FD1528D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

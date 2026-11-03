@@ -1,6 +1,9 @@
 ﻿using DVLDDataAccess.Entities;
+using DVLDShared.DTOs.Applications;
 using DVLDShared.DTOs.LicenseClass;
 using DVLDShared.DTOs.LocalDrivingLicenseApplications;
+using DVLDShared.DTOs.People;
+using DVLDShared.DTOs.Users;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -62,27 +65,80 @@ namespace DVLDDataAccess
             }
         }
 
-        public async Task<bool> UpdateLocalDrivingLicenseApplicationStatusAsync(int localDrivingLicenseApplicationId,byte newStatus)
+        public async Task<GetOneLocalDrivingLicenseApplicationDTO?> GetOneLocalDrivingLicenseApplicationsAsync(int id)
         {
             try
             {
-                var application =
-                    await _context.LocalDrivingLicenseApplications
-                        .Include(x => x.Application)
-                        .FirstOrDefaultAsync(x =>
-                            x.LocalDrivingLicenseApplicationId ==
-                            localDrivingLicenseApplicationId);
+                return await _context.LocalDrivingLicenseApplications
+                    .AsNoTracking()
+                    .Where(l => l.LocalDrivingLicenseApplicationId == id)
+                    .Select(x => new GetOneLocalDrivingLicenseApplicationDTO
+                    (
+                        x.LocalDrivingLicenseApplicationId,
 
-                if (application == null)
+                        x.LicenseClass.ClassName,
+
+                        x.TestAppointments
+                            .SelectMany(ta => ta.Tests)
+                            .Count(t => t.TestResult == true)
+
+                    ))
+                    .FirstOrDefaultAsync();
+
+            }
+
+
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"An error occurred while retrieving local driving license applications: {ex.Message}"
+                );
+
+                return null;
+            }
+        }
+
+        public async Task<LocalDrivingLicenseApplicationInfoDTO?> GetLocalDrivingLicenseApplicationInfoByIDAsync(
+                int localDrivingLicenseApplicationID)
+        {
+            try
+            {
+                return await _context.LocalDrivingLicenseApplications
+                    .AsNoTracking()
+                    .Where(a =>
+                        a.LocalDrivingLicenseApplicationId ==
+                        localDrivingLicenseApplicationID)
+                    .Select(a => new LocalDrivingLicenseApplicationInfoDTO
+                    {
+                        ApplicationID = a.ApplicationId,
+                        LicenseClassID = a.LicenseClassId
+                    })
+                    .FirstOrDefaultAsync();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        public async Task<bool> UpdateLocalDrivingLicenseApplicationStatusAsync(UpdateStatusDTO updateStatusDTO)
+        {
+            try
+            {
+                // 1. البحث بـ LocalDrivingLicenseApplicationId وتضمين جدول Applications الأساسي
+                var localApp = await _context.LocalDrivingLicenseApplications
+                    .Include(a => a.Application)
+                    .FirstOrDefaultAsync(x => x.LocalDrivingLicenseApplicationId == updateStatusDTO.ApplicationId);
+
+                if (localApp == null || localApp.Application == null)
                 {
                     return false;
                 }
 
-                application.Application.ApplicationStatus = newStatus;
-                application.Application.LastStatusDate = DateTime.Now;
+                // 2. تحديث الحالة والتاريخ في الكائن المترابط
+                localApp.Application.ApplicationStatus = updateStatusDTO.NewStatus;
+                localApp.Application.LastStatusDate = DateTime.Now;
 
                 int result = await _context.SaveChangesAsync();
-
                 return result > 0;
             }
             catch (Exception ex)
@@ -93,7 +149,71 @@ namespace DVLDDataAccess
 
                 return false;
             }
+
+
         }
+
+        public async Task<int> AddNewLocalDrivingLicenseApplicationAsync(AddNewLocalDrivingLicenseApplicationDTO applicationDTO)
+        {
+            try
+            {
+                var newApplication = new Application
+                {
+                    ApplicantPersonId = applicationDTO.PersonID,
+                    ApplicationDate = applicationDTO.ApplicationDate,
+                    ApplicationTypeId = 1,
+                    ApplicationStatus = 1,
+                    LastStatusDate = applicationDTO.ApplicationDate,
+                    PaidFees = applicationDTO.ApplicationsFees,
+                    CreatedByUserId = applicationDTO.CreatedBy
+                };
+
+                var newLocalDrivingLicenseApplication =
+                    new LocalDrivingLicenseApplication
+                    {
+                        LicenseClassId = applicationDTO.LisansClassID,
+
+                        Application = newApplication
+                    };
+
+                _context.LocalDrivingLicenseApplications
+                    .Add(newLocalDrivingLicenseApplication);
+
+                await _context.SaveChangesAsync();
+
+                return newLocalDrivingLicenseApplication
+                    .LocalDrivingLicenseApplicationId;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"An error occurred while adding a new application: {ex.Message}");
+
+                return -1;
+            }
+        }
+
+        public async Task<bool> HasActiveApplicationWithSameLicenseClassAsync(int ApplicantPersonID,int LicenseClassID)
+        {
+            try
+            {
+                return await _context.LocalDrivingLicenseApplications
+                    .AnyAsync(app =>
+                        app.Application.ApplicantPersonId == ApplicantPersonID &&
+                        app.LicenseClassId == LicenseClassID &&
+                        app.Application.ApplicationStatus == 1);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"An error occurred while checking for existing license applications: {ex.Message}");
+
+                return false;
+            }
+        }
+
+        
+
 
 
     }

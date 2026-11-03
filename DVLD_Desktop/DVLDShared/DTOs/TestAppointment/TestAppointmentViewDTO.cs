@@ -1,0 +1,27 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace DVLDShared.DTOs.TestAppointment
+{
+    public class TestAppointmentViewDTO
+    {
+        public int TestAppointmentID { get; set; }
+
+        public DateTime AppointmentDate { get; set; }
+
+        public decimal PaidFees { get; set; }
+
+        public bool IsLocked { get; set; }
+
+        public TestAppointmentViewDTO(int testAppointmentID, DateTime appointmentDate, decimal paidFees, bool isLocked)
+        {
+            TestAppointmentID = testAppointmentID;
+            AppointmentDate = appointmentDate;
+            PaidFees = paidFees;
+            IsLocked = isLocked;
+        }
+    }
+}

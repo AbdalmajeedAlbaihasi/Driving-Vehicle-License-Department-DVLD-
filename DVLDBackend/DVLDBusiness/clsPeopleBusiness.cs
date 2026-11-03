@@ -35,11 +35,6 @@ namespace DVLDBusiness
                 return (false, "Invalid data", -1);
             }
 
-            if (string.IsNullOrWhiteSpace(addNewPeopleDTO.NationalNo))
-            {
-                return (false, "National number is required", -1);
-            }
-
             if (string.IsNullOrWhiteSpace(addNewPeopleDTO.FirstName))
             {
                 return (false, "First name is required", -1);
@@ -53,6 +48,17 @@ namespace DVLDBusiness
             if (string.IsNullOrWhiteSpace(addNewPeopleDTO.LastName))
             {
                 return (false, "Last name is required", -1);
+            }
+
+            if (string.IsNullOrWhiteSpace(addNewPeopleDTO.NationalNo))
+            {
+                return (false, "National number is required", -1);
+            }
+
+            if (await _peopleDataAccess.IsNationalNoExistsAsync(
+                addNewPeopleDTO.NationalNo))
+            {
+                return (false, "National number already exists", -1);
             }
 
             if (string.IsNullOrWhiteSpace(addNewPeopleDTO.Phone))
@@ -70,10 +76,19 @@ namespace DVLDBusiness
                 return (false, "Person must be at least 18 years old", -1);
             }
 
-            if (await _peopleDataAccess.IsNationalNoExistsAsync(
-                addNewPeopleDTO.NationalNo))
+            if (addNewPeopleDTO.Gendor == 255)
             {
-                return (false, "National number already exists", -1);
+                return (false, "Gendor is required ", -1);
+            }
+
+            if (string.IsNullOrWhiteSpace(addNewPeopleDTO.Email))
+            {
+                return (false, "Email is required", -1);
+            }
+
+            if (string.IsNullOrWhiteSpace(addNewPeopleDTO.Address))
+            {
+                return (false, "Address is required", -1);
             }
 
             int personID =
@@ -88,7 +103,7 @@ namespace DVLDBusiness
         }
 
 
-        public async Task<OnePeopleDTO> GetPersonByIDAsync(int PersonID)
+        public async Task<OnePeopleDTO?> GetPersonByIDAsync(int PersonID)
         {
             if (PersonID < 1)
             {
@@ -98,6 +113,14 @@ namespace DVLDBusiness
             return await _peopleDataAccess.GetPersonByIDAsync(PersonID);
         }
 
+        public async Task<OnePeopleDTO?> GetPersonByUserID(int userID)
+        {
+            if (userID < 1)
+            {
+                return null;
+            }
+            return await _peopleDataAccess.GetPersonByUserID(userID);
+        }
 
         public async Task<OnePeopleDTO> GetPersonByNationalNoAsync(string nationalNo)
         {

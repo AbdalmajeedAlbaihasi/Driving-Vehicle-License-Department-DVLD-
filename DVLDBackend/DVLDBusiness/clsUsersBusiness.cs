@@ -18,6 +18,7 @@ namespace DVLDBusiness
         {
             if (loginDTO == null)
             {
+               //throw new ArgumentNullException(nameof(loginDTO));
                 return (false, "Invalid data", -1, false);
             }
 
@@ -58,6 +59,10 @@ namespace DVLDBusiness
             );
         }
 
+
+
+
+
         public async Task<(bool Success, string Message, List<UsersListDTO>? UsersList)>GetAllUsersAsync()
         {
             var users = await _usersDataAccess.GetAllUsersAsync();
@@ -97,6 +102,10 @@ namespace DVLDBusiness
                 return (false, "Username already exists", -1);
             }
 
+            if (await _usersDataAccess.IsPersonLinkedToUserAsync(addNewUserDTO.PersonID))
+            {
+                return (false, "Chosen person is already linked to another user", -1);
+            }
             addNewUserDTO.Password =
                             BCrypt.Net.BCrypt.HashPassword(addNewUserDTO.Password);
 
@@ -110,7 +119,7 @@ namespace DVLDBusiness
             return (true, "User added successfully", userID);
         }
 
-        public async Task<UsersListDTO?> GetUserByIDAsync(int userID)
+        public async Task<GetUserByIDDTO?> GetUserByIDAsync(int userID)
         {
             if (userID < 1)
             {
@@ -127,10 +136,6 @@ namespace DVLDBusiness
                 return (false, "Invalid data");
             }
 
-            if (updateUserDTO.PersonID < 1)
-            {
-                return (false, "Invalid person ID");
-            }
 
             if (updateUserDTO.UserID < 1)
             {
@@ -147,8 +152,6 @@ namespace DVLDBusiness
                 return (false, "Username already exists");
             }
 
-            updateUserDTO.Password =
-        BCrypt.Net.BCrypt.HashPassword(updateUserDTO.Password);
 
             bool isUpdated =
                 await _usersDataAccess.UpdateUserAsync(updateUserDTO);
@@ -163,17 +166,18 @@ namespace DVLDBusiness
 
         public async Task<(bool Success, string Message)> DeleteUserAsync(int userID)
         {
+
             if (userID < 1)
             {
                 return (false, "Invalid user ID");
             }
 
-            bool isLinkedToPerson = await _usersDataAccess.IsUserLinkedToPersonAsync(userID);
+            //bool isLinkedToPerson = await _usersDataAccess.IsUserLinkedToPersonAsync(userID);
 
-            if (isLinkedToPerson)
-            {
-                return (false, "User cannot be deleted because it is linked to a person");
-            }
+            //if (isLinkedToPerson)
+            //{
+            //    return (false, "User cannot be deleted because it is linked to a person");
+            //}
 
             bool isDeleted = await _usersDataAccess.DeleteUserAsync(userID);
 
@@ -187,16 +191,6 @@ namespace DVLDBusiness
 
         public async Task<(bool Success, string Message)> VerifyCurrentPasswordAsync(int userID, string password)
         {
-            if (userID <= 0)
-            {
-                return (false, "Invalid user ID");
-            }
-
-            if (string.IsNullOrWhiteSpace(password))
-            {
-                return (false, "Password is required");
-            }
-
             string? passwordHash =
                 await _usersDataAccess.GetPasswordHashByUserIDAsync(userID);
 
@@ -220,15 +214,6 @@ namespace DVLDBusiness
  
         public async Task<(bool Success, string Message)> ChangePasswordAsync(int userID,string newPassword)
         {
-            if (userID <= 0)
-            {
-                return (false, "Invalid user ID");
-            }
-
-            if (string.IsNullOrWhiteSpace(newPassword))
-            {
-                return (false, "New password is required");
-            }
 
             string newPasswordHash =
                 BCrypt.Net.BCrypt.HashPassword(newPassword);

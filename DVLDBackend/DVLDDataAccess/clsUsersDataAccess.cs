@@ -22,6 +22,8 @@ namespace DVLDDataAccess
                                 .Select(u => new UsersListDTO(
                                     u.UserId,
                                     u.PersonId,
+                                    u.Person.FirstName + " " + u.Person.SecondName + " " +
+                                    u.Person.ThirdName + " " + u.Person.LastName,
                                     u.UserName,
                                     u.IsActive
                                     )).ToListAsync();
@@ -38,13 +40,13 @@ namespace DVLDDataAccess
 
         }
 
-        public async Task<UsersListDTO?> GetUserByIDAsync(int userID)
+        public async Task<GetUserByIDDTO?> GetUserByIDAsync(int userID)
         {
             try
             {
                 return await _context.Users
                     .Where(u => u.UserId == userID)
-                    .Select(u => new UsersListDTO(
+                    .Select(u => new GetUserByIDDTO(
                         u.UserId,
                         u.PersonId,
                         u.UserName,
@@ -115,9 +117,7 @@ namespace DVLDDataAccess
                 {
                     return false;
                 }
-                user.PersonId = updateUserDTO.PersonID;
                 user.UserName = updateUserDTO.UserName;
-                user.Password = updateUserDTO.Password;
                 user.IsActive = updateUserDTO.IsActive;
                 
 
@@ -202,14 +202,12 @@ namespace DVLDDataAccess
                     u.UserId != userID);
         }
 
-        public async Task<bool> IsUserLinkedToPersonAsync(int userID)
+        public async Task<bool> IsPersonLinkedToUserAsync(int personID)
         {
             try
             {
                 return await _context.Users
-                    .AnyAsync(u =>
-                        u.UserId == userID &&
-                        u.Person != null);
+            .AnyAsync(u => u.PersonId == personID);
             }
             catch
             {

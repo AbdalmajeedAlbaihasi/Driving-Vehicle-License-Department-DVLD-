@@ -58,6 +58,31 @@ namespace DVLDAPI.Controllers
         }
 
 
+
+
+        [HttpGet("ByUserID/{userID}", Name = "GetPersonByUserID")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<OnePeopleDTO>> GetPersonByUserID(int userID)
+        {
+            if (userID < 1)
+            {
+                return BadRequest("Invalid User ID");
+            }
+
+            OnePeopleDTO? person =
+                await _clsPeopleBusiness.GetPersonByUserID(userID);
+            if (person == null)
+            {
+                return NotFound("Person Not Found");
+            }
+
+            return Ok(person);
+        }
+
+
+
         [HttpGet(
             "ByNationalNo/{nationalNo}",
             Name = "GetPersonByNationalNo")]
@@ -87,31 +112,21 @@ namespace DVLDAPI.Controllers
         [HttpPost("Add", Name = "AddNewPerson")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> AddNewPerson(
-            [FromBody] AddNewPeopleDTO addNewPeopleDTO)
+        public async Task<ActionResult> AddNewPerson([FromBody] AddNewPeopleDTO addNewPeopleDTO)
         {
-            var result =
-                await _clsPeopleBusiness.AddNewPersonAsync(addNewPeopleDTO);
+            var result = await _clsPeopleBusiness.AddNewPersonAsync(addNewPeopleDTO);
 
             if (!result.Success)
             {
                 return BadRequest(new
                 {
-                    Error = result.Message
+                Success = result.Success, PersonID = result.PersonID, Message = result.Message 
+
                 });
             }
 
-            return CreatedAtRoute(
-                "GetPersonByID",
-                new
-                {
-                    PersonID = result.PersonID
-                },
-                new
-                {
-                    PersonID = result.PersonID,
-                    Message = result.Message
-                });
+            return CreatedAtRoute("GetPersonByID",new { PersonID = result.PersonID },
+                new { Success = result.Success, PersonID = result.PersonID, Message = result.Message });
         }
 
 
