@@ -192,6 +192,40 @@ namespace DVLDDataAccess
             }
         }
 
+        public async Task<OnePeopleDTO?> GetPersonByUserID(int userID)
+        {
+            try
+            {
+                return await _context.Users
+                    .AsNoTracking()
+                    .Where(p => p.UserId == userID)
+                    .Select(p => new OnePeopleDTO(
+                        p.PersonId,
+                        p.Person.NationalNo,
+                        p.Person.FirstName,
+                        p.Person.SecondName,
+                        p.Person.ThirdName ?? "",
+                        p.Person.LastName,
+                        p.Person.DateOfBirth,
+                        p.Person.Gendor,
+                        p.Person.Address,
+                        p.Person.Phone,
+                        p.Person.Email ?? "",
+                        p.Person.NationalityCountryId,
+                        p.Person.NationalityCountry.CountryName,
+                        p.Person.ImagePath ?? ""
+                    ))
+                    .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"Error in GetPersonByUserID: {ex.Message}");
+
+                return null;
+            }
+        }
+
         public async Task<bool> UpdatePersonAsync(UpdatePeopleDTO updatePeopleDTO)
         {
             if (updatePeopleDTO == null)
@@ -323,5 +357,7 @@ namespace DVLDDataAccess
                 return false;
             }
         }
+
+        
     }
 }

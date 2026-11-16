@@ -1,4 +1,5 @@
 ﻿using DVLDDataAccess.Entities;
+using DVLDShared.DTOs.ApplicationsType;
 using DVLDShared.DTOs.TestType;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,6 +27,54 @@ namespace DVLDDataAccess
             {
                 Console.WriteLine($"Error checking database connection: {ex.Message}");
                  return new List<TestTypeDTO>(); ;
+            }
+        }
+
+        public async Task<TestTypeDTO?> GetOneTestTypes(int TestTypeID)
+        {
+            try
+            {
+                return await _context.TestTypes.AsNoTracking()
+                    .Where(A => A.TestTypeId == TestTypeID)
+                    .Select(at => new TestTypeDTO(at.TestTypeId,
+                            at.TestTypeTitle, at.TestTypeDescription,at.TestTypeFees)).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"Error getting Test type: {ex.Message}");
+
+                return null;
+            }
+
+
+        }
+
+        public async Task<int> AddNewTestTypeAsync(AddNewTestTypeDTO NewtestTypeDTO)
+        {
+            try
+            {
+
+                var testType = new TestType
+                {
+                    TestTypeTitle = NewtestTypeDTO.TestTypeTitle,
+                    TestTypeDescription = NewtestTypeDTO.Description,
+                    TestTypeFees = NewtestTypeDTO.TestFees 
+                };
+
+
+                await _context.TestTypes.AddAsync(testType);
+
+
+                await _context.SaveChangesAsync();
+
+
+                return testType.TestTypeId;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding test type: {ex.Message}");
+                return -1;
             }
         }
 

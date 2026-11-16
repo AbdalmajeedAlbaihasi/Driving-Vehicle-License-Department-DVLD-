@@ -1,7 +1,8 @@
-using Microsoft.EntityFrameworkCore;
-using DVLDDataAccess.Entities;
-using DVLDDataAccess;
 using DVLDBusiness;
+using DVLDDataAccess;
+using DVLDDataAccess.Entities;
+using DVLDDataAccessLayer;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,13 @@ builder.Services.AddScoped<clsLocalDrivingLicenseApplicationBusiness>();
 
 builder.Services.AddScoped<clsApplicationsDataAccess>();
 builder.Services.AddScoped<clsApplicationsBusiness>();
+
+builder.Services.AddScoped<clsNationalitiesData>();
+builder.Services.AddScoped<clsNationalitiesBusiness>();
+
+builder.Services.AddScoped<clsLicenseClassesDataAccess>();
+builder.Services.AddScoped<clsLicenseClassesBusiness>();
+
 
 var app = builder.Build();
 

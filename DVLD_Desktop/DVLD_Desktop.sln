@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37203.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DVLDShared", "DVLDShared\DVLDShared.csproj", "{3A5671F0-A8F8-44C0-F73D-F8E7AE8D0149}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DVLD_Desktop_Net8", "DVLD_Desktop\DVLD_Desktop_Net8.csproj", "{E31C044A-19F1-3E03-1749-95B8B81A6CCF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3A5671F0-A8F8-44C0-F73D-F8E7AE8D0149}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A5671F0-A8F8-44C0-F73D-F8E7AE8D0149}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A5671F0-A8F8-44C0-F73D-F8E7AE8D0149}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A5671F0-A8F8-44C0-F73D-F8E7AE8D0149}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E31C044A-19F1-3E03-1749-95B8B81A6CCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E31C044A-19F1-3E03-1749-95B8B81A6CCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E31C044A-19F1-3E03-1749-95B8B81A6CCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E31C044A-19F1-3E03-1749-95B8B81A6CCF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3D20F193-926D-4E22-AB0C-AD8FDE56D5AC}
+	EndGlobalSection
+EndGlobal

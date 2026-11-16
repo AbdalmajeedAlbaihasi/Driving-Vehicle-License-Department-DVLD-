@@ -1,0 +1,72 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
+  <ItemGroup>
+    <Compile Update="Applications\Control\ctrlApplicationBasicInfo.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Applications Type\fmEditApplicationType.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Applications Type\fmManageApplicationTypesList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Local Driving License Application\fmLocalDrivingLicenseApplicationList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Local Driving License Application\fmNewLocalDrivingLicenseApplication.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Local Driving License Application\Control\ctrlDrivingLicenseApplicationInfo.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="People\Control\ucPersonCardWithFilter.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="People\Control\ucShowPesronDetails.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="People\fmUpdatePerson.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Test Type\fmEditTestType.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Test Type\fmTestTypeList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Test\Controls\crlScheduleTest.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Test\Controls\ctrlSecheduledTest.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="Test Appointment\fmListTestAppointments.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Test\fmScheduleTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Test\fmTakeTest.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="User\fmAddUpdateUser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="User\fmChangePassword.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="User\fmLogIn.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="User\fmShowUserDetails.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="User\fmUsersList.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="User\UsersControls\ucShowUserDetails.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>

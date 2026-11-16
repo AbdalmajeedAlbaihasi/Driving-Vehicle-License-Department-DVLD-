@@ -1,4 +1,5 @@
 ﻿using DVLDBusiness;
+using DVLDShared.DTOs.People;
 using DVLDShared.DTOs.Users;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -27,37 +28,37 @@ namespace DVLDAPI.Controllers
         {
             if (loginDTO == null)
             {
-                return BadRequest("Invalid data");
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = "Invalid data"
+                });
             }
 
-            var result =
-                await _usersBusiness.LoginAsync(loginDTO);
+            var result = await _usersBusiness.LoginAsync(loginDTO);
 
             if (!result.Success)
             {
-                if (result.Message == "User account is inactive")
+                // الاعتماد على Enum أو IsActive بدلاً من مقارنة النصوص
+                if (!result.IsActive && result.UserID > 0)
                 {
-                    return StatusCode(
-                        StatusCodes.Status403Forbidden,
-                        new
-                        {
-                            Message = result.Message
-                        });
+                    return StatusCode(StatusCodes.Status403Forbidden, new { Message = result.Message, Success = result.Success });
                 }
 
-                return Unauthorized(new
-                {
-                    Message = result.Message
-                });
+                return Unauthorized(new { Message = result.Message, Success = result.Success });
             }
 
             return Ok(new
             {
+                Success = result.Success,
                 UserID = result.UserID,
                 IsActive = result.IsActive,
                 Message = result.Message
             });
         }
+
+
+
 
 
         // Get All Users
@@ -93,7 +94,7 @@ namespace DVLDAPI.Controllers
                 return BadRequest("Invalid user ID");
             }
 
-            UsersListDTO? user =
+            GetUserByIDDTO? user =
                 await _usersBusiness.GetUserByIDAsync(userID);
 
             if (user == null)
@@ -109,21 +110,24 @@ namespace DVLDAPI.Controllers
         [HttpPost("Add", Name = "AddNewUser")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> AddNewUser(
-            [FromBody] AddNewUserDTO addNewUserDTO)
+        public async Task<ActionResult> AddNewUser([FromBody] AddNewUserDTO addNewUserDTO)
         {
             if (addNewUserDTO == null)
             {
-                return BadRequest("Invalid data");
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = "Invalid data"
+                });
             }
 
-            var result =
-                await _usersBusiness.AddNewUserAsync(addNewUserDTO);
+            var result = await _usersBusiness.AddNewUserAsync(addNewUserDTO);
 
             if (!result.Success)
             {
                 return BadRequest(new
                 {
+                    Success = result.Success,
                     Message = result.Message
                 });
             }
@@ -136,10 +140,12 @@ namespace DVLDAPI.Controllers
                 },
                 new
                 {
+                    Success = result.Success,
                     UserID = result.UserID,
                     Message = result.Message
                 });
         }
+
 
 
         // Update User
@@ -147,26 +153,27 @@ namespace DVLDAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> UpdateUser(
-            int userID,
-            [FromBody] UpdateUserDTO updateUserDTO)
+        public async Task<ActionResult> UpdateUser(int userID, [FromBody] UpdateUserDTO updateUserDTO)
         {
-            if (userID < 1)
-            {
-                return BadRequest("Invalid user ID");
-            }
-
             if (updateUserDTO == null)
             {
-                return BadRequest("Invalid data");
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = "Invalid data"
+                });
             }
 
-            UsersListDTO? user =
+            GetUserByIDDTO? user =
                 await _usersBusiness.GetUserByIDAsync(userID);
 
             if (user == null)
             {
-                return NotFound("User not found");
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
             }
 
             updateUserDTO.UserID = userID;
@@ -178,12 +185,14 @@ namespace DVLDAPI.Controllers
             {
                 return BadRequest(new
                 {
+                    Success = result.Success,
                     Message = result.Message
                 });
             }
 
             return Ok(new
             {
+                Success = result.Success,
                 Message = result.Message
             });
         }
@@ -196,17 +205,16 @@ namespace DVLDAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult> DeleteUser(int userID)
         {
-            if (userID < 1)
-            {
-                return BadRequest("Invalid user ID");
-            }
 
-            UsersListDTO? user =
-                await _usersBusiness.GetUserByIDAsync(userID);
+            GetUserByIDDTO? user = await _usersBusiness.GetUserByIDAsync(userID);
 
             if (user == null)
             {
-                return NotFound("User not found");
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
             }
 
             var result =
@@ -216,12 +224,14 @@ namespace DVLDAPI.Controllers
             {
                 return BadRequest(new
                 {
+                    Success = result.Success,
                     Message = result.Message
                 });
             }
 
             return Ok(new
             {
+                Success = result.Success,
                 Message = result.Message
             });
         }
@@ -232,24 +242,27 @@ namespace DVLDAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> VerifyCurrentPassword(
-            int userID,
-            [FromBody] string password)
+        public async Task<ActionResult> VerifyCurrentPassword(int userID, [FromBody] string password)
         {
             if (userID < 1)
             {
-                return BadRequest("Invalid user ID");
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = "Invalid user ID"
+                });
             }
 
             if (string.IsNullOrWhiteSpace(password))
             {
-                return BadRequest("Password is required");
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = "Password is required"
+                });
             }
 
-            var result =
-                await _usersBusiness.VerifyCurrentPasswordAsync(
-                    userID,
-                    password);
+            var result = await _usersBusiness.VerifyCurrentPasswordAsync(userID, password);
 
             if (!result.Success)
             {
@@ -257,18 +270,21 @@ namespace DVLDAPI.Controllers
                 {
                     return NotFound(new
                     {
+                        Success = result.Success,
                         Message = result.Message
                     });
                 }
 
                 return BadRequest(new
                 {
+                    Success = result.Success,
                     Message = result.Message
                 });
             }
 
             return Ok(new
             {
+                Success = result.Success,
                 Message = result.Message
             });
         }
@@ -279,43 +295,51 @@ namespace DVLDAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> ChangePassword(
-            int userID,
-            [FromBody] string newPassword)
+        public async Task<ActionResult> ChangePassword(int userID, [FromBody] string newPassword)
         {
             if (userID < 1)
             {
-                return BadRequest("Invalid user ID");
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = "Invalid user ID"
+                });
             }
 
             if (string.IsNullOrWhiteSpace(newPassword))
             {
-                return BadRequest("New password is required");
+                return BadRequest(new
+                {
+                    Success = false,
+                    Message = "New Password is required"
+                });
             }
 
-            UsersListDTO? user =
-                await _usersBusiness.GetUserByIDAsync(userID);
+            GetUserByIDDTO? user = await _usersBusiness.GetUserByIDAsync(userID);
 
             if (user == null)
             {
-                return NotFound("User not found");
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
             }
 
-            var result =
-                await _usersBusiness.ChangePasswordAsync(
-                    userID,
-                    newPassword);
+            var result = await _usersBusiness.ChangePasswordAsync(userID, newPassword);
 
             if (!result.Success)
             {
                 return BadRequest(new
                 {
+                    Success = result.Success,
                     Message = result.Message
                 });
             }
 
             return Ok(new
             {
+                Success = result.Success,
                 Message = result.Message
             });
         }

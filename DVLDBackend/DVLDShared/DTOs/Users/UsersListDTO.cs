@@ -7,6 +7,7 @@ namespace DVLDShared.DTOs.Users
         public UsersListDTO(
             int userID,
             int personID,
+            string fullName,
             string userName,
             bool isActive
 
@@ -14,6 +15,7 @@ namespace DVLDShared.DTOs.Users
         {
             this.UserID = userID;
             this.PersonID = personID;
+            this.FullName = fullName;
             this.UserName = userName;
             this.IsActive = isActive;
         }
@@ -21,7 +23,7 @@ namespace DVLDShared.DTOs.Users
         public int PersonID { get; set; }
 
         public int UserID { get; set; }
-
+        public string FullName { get; set; }
         public string UserName { get; set; }
 
         public bool IsActive { get; set; }

@@ -1,10 +1,11 @@
 ﻿using DVLDBusiness;
 using DVLDShared.DTOs.Applications;
+using DVLDShared.DTOs.Test_Appointment;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DVLDAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/Applications")]
     [ApiController]
     public class ApplicationsController : ControllerBase
     {
@@ -16,39 +17,21 @@ namespace DVLDAPI.Controllers
         }
 
 
-        [HttpPost("Add", Name = "AddNewApplication")]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> AddNewApplication([FromBody] AddNewApplicationDTO applicationDTO)
+
+        [HttpGet("{Id}", Name = "GetApplicationByIdAsync")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<GetApplicationByLocalDrivingLicenseApplicationIdDTO>> GetApplicationByLocalDrivingLicenseApplicationIdAsync(int Id)
         {
-            if (applicationDTO == null)
+            GetApplicationByLocalDrivingLicenseApplicationIdDTO? application =
+                await _business.GetApplicationByLocalDrivingLicenseApplicationIdAsync(Id);
+
+            if (application == null)
             {
-                return BadRequest(new
-                {
-                    Error = "Application data is null."
-                });
+                return NotFound("No application found");
             }
 
-            var result =
-                await _business.AddNewApplicationAsync(applicationDTO);
-
-            if (!result.Success)
-            {
-                return BadRequest(new
-                {
-                    Error = result.Message
-                });
-            }
-
-            return StatusCode(
-                StatusCodes.Status201Created,
-                new
-                {
-                    LocalDrivingLicenseApplicationID =
-                        result.newLocalDrivingLicenseApplicationID,
-
-                    Message = result.Message
-                });
+            return Ok(application);
         }
     }
 }

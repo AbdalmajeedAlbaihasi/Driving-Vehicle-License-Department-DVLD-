@@ -1,5 +1,7 @@
 ﻿using DVLDBusiness;
+using DVLDDataAccess.Entities;
 using DVLDShared.DTOs.ApplicationsType;
+using DVLDShared.DTOs.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DVLDAPI.Controllers
@@ -21,8 +23,7 @@ namespace DVLDAPI.Controllers
         [HttpGet("All", Name = "GetAllApplicationTypes")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<List<ApplicationsTypeDTO>>>
-            GetAllApplicationTypesAsync()
+        public async Task<ActionResult<List<ApplicationsTypeDTO>>> GetAllApplicationTypesAsync()
         {
             List<ApplicationsTypeDTO> applicationTypes =
                 await _applicationsTypeBusiness.GetAllApplicationsTypeAsync();
@@ -37,83 +38,98 @@ namespace DVLDAPI.Controllers
         }
 
 
+        [HttpGet("{applicationTypeId}", Name = "GetOneApplicationType")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApplicationsTypeDTO>> GetOneApplicationTypeAsync(int applicationTypeId)
+        {
+            ApplicationsTypeDTO? applicationType = await _applicationsTypeBusiness.GetOneApplicationsTypeAsync(applicationTypeId);
+
+            if (applicationType == null )
+            {
+                return NotFound("No application type found");
+            }
+
+            return Ok(applicationType);
+        }
+
+
+
         // Update Application Type Title
-        [HttpPut(
-            "UpdateTitle/{applicationTypeId}",
-            Name = "UpdateApplicationTypeTitle")]
+        [HttpPut("Update/{applicationTypeId}", Name = "UpdateApplicationTypeTitle")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> UpdateApplicationTypeTitleAsync(
-            int applicationTypeId,
-            [FromBody] string newTitle)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> UpdateApplicationsTypeAsync(int applicationTypeId, [FromBody] ApplicationsTypeDTO applicationsTypeDTO)
         {
-            if (applicationTypeId <= 0)
-            {
-                return BadRequest("Invalid application type ID");
-            }
-
-            if (string.IsNullOrWhiteSpace(newTitle))
-            {
-                return BadRequest("New title cannot be empty");
-            }
-
-            var result =
-                await _applicationsTypeBusiness.UpdateTitleNameAsync(
-                    applicationTypeId,
-                    newTitle);
-
-            if (!result.Success)
+            if (applicationsTypeDTO == null || applicationTypeId != applicationsTypeDTO.ApplicationTypeId)
             {
                 return BadRequest(new
                 {
+                    Success = false,
+                    Message = "Invalid data or ID mismatch."
+                });
+            }
+
+
+            var result = await _applicationsTypeBusiness.UpdateApplicationsTypeAsync(applicationsTypeDTO);
+
+            if (!result.Success)
+            {
+                return NotFound(new
+                {
+                    Success = result.Success,
                     Message = result.Message
                 });
             }
 
             return Ok(new
             {
-                Message = result.Message
+                Success = result.Success,
+                Message = result.Message,
             });
         }
 
 
-        // Update Application Type Fees
-        [HttpPut(
-            "UpdateFees/{applicationTypeId}",
-            Name = "UpdateApplicationTypeFees")]
+
+
+        [HttpGet("GetFees/{applicationTypeId}", Name = "GetApplicationTypeFeesById")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> UpdateApplicationTypeFeesAsync(
-            int applicationTypeId,
-            [FromBody] decimal newFees)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetApplicationTypeFeesById(int applicationTypeId)
         {
+            // 1. التحقق من صحة البرامتر
             if (applicationTypeId <= 0)
-            {
-                return BadRequest("Invalid application type ID");
-            }
-
-            if (newFees < 0)
-            {
-                return BadRequest("New fees cannot be negative");
-            }
-
-            var result =
-                await _applicationsTypeBusiness.UpdateApplicationFeesAsync(
-                    applicationTypeId,
-                    newFees);
-
-            if (!result.Success)
             {
                 return BadRequest(new
                 {
+                    Success = false,
+                    Message = "Invalid Application Type ID."
+                });
+            }
+
+            // 2. استدعاء البيزنس
+            var result = await _applicationsTypeBusiness.GetApplicationTypeFeesByIdAsync(applicationTypeId);
+
+            // 3. معالجة حالة عدم العثور على البيانات
+            if (!result.Success)
+            {
+                return NotFound(new
+                {
+                    Success = false,
                     Message = result.Message
                 });
             }
 
+            // 4. إرجاع الاستجابة بنجاح 200 OK متضمنة القيمة الماليّة
             return Ok(new
             {
-                Message = result.Message
+                Success = true,
+                Message = result.Message,
+                Fees = result.Fees
             });
         }
+
     }
 }

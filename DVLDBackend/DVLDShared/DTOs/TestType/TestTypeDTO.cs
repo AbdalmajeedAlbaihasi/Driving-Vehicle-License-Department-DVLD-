@@ -2,7 +2,7 @@
 {
     public class TestTypeDTO
     {
-        public TestTypeDTO(int testTypeId, string testTypeTitle,string description, decimal testFees)
+        public TestTypeDTO(int testTypeId , string testTypeTitle,string description, decimal testFees)
         {
             TestTypeId = testTypeId;
             TestTypeTitle = testTypeTitle;

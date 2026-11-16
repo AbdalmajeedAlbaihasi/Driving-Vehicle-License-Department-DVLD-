@@ -1,6 +1,7 @@
 ﻿using DVLDDataAccess.Entities;
-using Microsoft.EntityFrameworkCore;
 using DVLDShared.DTOs.ApplicationsType;
+using DVLDShared.DTOs.Users;
+using Microsoft.EntityFrameworkCore;
 
 namespace DVLDDataAccess
 {
@@ -30,17 +31,40 @@ namespace DVLDDataAccess
             }
         }
 
-        public async Task<bool> UpdateTitleNameAsync(int applicationTypeId, string newTitle)
+        public async Task<ApplicationsTypeDTO?> GetOneApplicationsTypeAsync(int ApplicationsTypeID)
+        {
+            try
+            {
+                return await _context.ApplicationTypes.AsNoTracking()
+                    .Where(A => A.ApplicationTypeId == ApplicationsTypeID)
+                    .Select(at => new ApplicationsTypeDTO(at.ApplicationTypeId,
+                            at.ApplicationTypeTitle, at.ApplicationFees)).FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"Error getting application types: {ex.Message}");
+
+                return null;
+            }
+
+           
+        }
+
+        public async Task<bool> UpdateApplicationsTypeAsync(ApplicationsTypeDTO applicationsTypeDTO)
         {
             try
             {
                 var applicationType = await _context.ApplicationTypes
-                    .FirstOrDefaultAsync(at => at.ApplicationTypeId == applicationTypeId);
+                    .FindAsync(applicationsTypeDTO.ApplicationTypeId);
                 if (applicationType == null)
                 {
                     return false; 
                 }
-                applicationType.ApplicationTypeTitle = newTitle;
+
+                applicationType.ApplicationTypeTitle = applicationsTypeDTO.ApplicationTypeTitle;
+                applicationType.ApplicationFees = applicationsTypeDTO .ApplicationFees;
+
                 await _context.SaveChangesAsync();
                 return true; 
             }
@@ -51,25 +75,23 @@ namespace DVLDDataAccess
             }
         }
 
-        public async Task<bool> UpdateApplicationFeesAsync(int applicationTypeId, decimal newFees)
+
+        public async Task<decimal?> GetApplicationTypeFeesByIdAsync(int applicationTypeId)
         {
             try
             {
-                var applicationType = await _context.ApplicationTypes
-                    .FirstOrDefaultAsync(at => at.ApplicationTypeId == applicationTypeId);
-                if (applicationType == null)
-                {
-                    return false; 
-                }
-                applicationType.ApplicationFees = newFees;
-                await _context.SaveChangesAsync();
-                return true; 
+                return await _context.ApplicationTypes
+                    .AsNoTracking()
+                    .Where(a => a.ApplicationTypeId == applicationTypeId)
+                    .Select(a => (decimal?)a.ApplicationFees)
+                    .FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating application fees: {ex.Message}");
-                return false; 
+                Console.WriteLine($"Database Error: {ex.Message}");
+                return null;
             }
         }
+    
     }
 }
